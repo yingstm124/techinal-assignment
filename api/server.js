@@ -2,6 +2,7 @@ const express = require("express");
 const { Server } = require("socket.io");
 const http = require("http");
 const cors = require("cors");
+const { timeStamp } = require("console");
 
 const app = express();
 const server = http.createServer(app);
@@ -22,20 +23,36 @@ const io = new Server(server, {
     },
 });
 
+let users = {};
+let chatHistory = {};
+
 io.on("connection", (socket) => {
     console.log("a user connected");
 
-    socket.on("setUsername", (username) => {
-        console.log(`received ${username}`);
-        socket.username = username;
+    socket.on("start chat", (userId) => {
+        console.log("start chat", userId);
+        socket.id = userId;
+        chatHistory[socket.id] = [];
     });
 
-    socket.on("conversation", (obj) => {
-        console.log("coversation ", obj);
-        io.emit(
-            "conversation",
-            JSON.stringify({ ...obj, sender: socket.username })
-        );
+    socket.on("chat message", ({ message }) => {
+        console.log(`user ${socket.id} chat`, message);
+        if (chatHistory[socket.id]) {
+            chatHistory[socket.id] = [
+                ...chatHistory[socket.id],
+                { message: message, timeStamp: Date.now() },
+            ];
+        }
+        console.log("chat history", chatHistory);
+        io.emit("chat message", { message: message });
+    });
+
+    socket.on("disconnect", () => {
+        const user = users[socket.id];
+        if (user) {
+            delete users[socket.id];
+        }
+        console.log("user disconnected");
     });
 });
 

@@ -10,8 +10,11 @@ interface IUser {
 }
 
 function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<IUser>(undefined);
-    const [token, setToken] = useState("sss");
+    const [user, setUser] = useState<IUser>({
+        id: "99",
+        name: "zimzalabim",
+    });
+    const [token, setToken] = useState("test-token");
 
     return (
         <AuthContext.Provider

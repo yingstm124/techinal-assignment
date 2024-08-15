@@ -1,26 +1,28 @@
 import { useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
+import { IChatParam } from "./param";
+import { useAuthContext } from "../components/Auth/AuthProvider";
 
 function useRealtimeChat() {
     const socketRef = useRef<Socket>();
-    // const { user } = useAuthContext();
+    const { user } = useAuthContext();
 
-    const onConversation = (obj: object) => {
-        console.log(`receive ${obj}`);
+    const onChat = (param: IChatParam) => {
+        console.log(`receive ${param.message}`);
     };
 
+    // get chistory from socket
     useEffect(() => {
         // if(!user) return
         socketRef.current = io("http://localhost:5000");
-        // socketRef.current.emit("setUsername", "alice");
-
-        socketRef.current.on("conversation", onConversation);
+        socketRef.current.emit("start chat", user?.id ?? "");
+        socketRef.current.on("chat message", onChat);
 
         return () => {
             if (!socketRef?.current) return;
-            socketRef.current.off("conversation");
+            socketRef.current.off("chat message");
         };
-    }, []);
+    }, [user?.id]);
 
     return {
         socketRef,

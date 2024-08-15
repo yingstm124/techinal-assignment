@@ -1,40 +1,29 @@
-import { useEffect, useRef } from 'react';
-import './App.css'
-import io, { Socket } from 'socket.io-client';
-
-
+import "./App.css";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import HomePage from "./pages/HomePage";
+import AuthProvider from "./components/Auth/AuthProvider";
+import LoginPage from "./pages/LoginPage";
+import ProtectedRoute from "./components/Auth/ProtectedRoute";
 
 function App() {
-  const socketRef = useRef<Socket>()
-  useEffect(() => {
-    socketRef.current = io('http://localhost:5000');
-    socketRef.current.emit('setUsername', 1)
-  
-
-    socketRef.current.on('conversation', (obj: object) => {
-    console.log(`receive ${obj}`)
-   })
-
-   return () => {
-    if  (socketRef.current)
-      socketRef.current.off('message')
-   }
-}, []);
-
-  const sendMsg = () => {
-
-    socketRef.current?.emit('conversation', {
-      userId: 1,
-      receiverId: 2,
-      roomId: '12',
-      message: 'msg: ' + Date.now().toString()
-    })
-  }
-  return (
-    <>
-      <button onClick={sendMsg}>send</button>
-    </>
-  )
+    return (
+        <AuthProvider>
+            <BrowserRouter>
+                <Routes>
+                    <Route
+                        index
+                        path="/"
+                        element={
+                            <ProtectedRoute>
+                                <HomePage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route index path="/login" element={<LoginPage />} />
+                </Routes>
+            </BrowserRouter>
+        </AuthProvider>
+    );
 }
 
-export default App
+export default App;

@@ -1,6 +1,6 @@
 import useRealtimeChat from "../websocket/useRealtimeChat";
 
-function HomePage() {
+function ChatPage() {
     const { socketRef } = useRealtimeChat();
 
     const sendMsg = () => {
@@ -17,4 +17,4 @@ function HomePage() {
         </>
     );
 }
-export default HomePage;
+export default ChatPage;

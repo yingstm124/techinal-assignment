@@ -7,7 +7,6 @@ const app = express();
 const server = http.createServer(app);
 const port = process.env.PORT || 5000;
 
-//
 app.use(
     cors({
         origins: "http://localhost:3000", // Replace with your React app's URL

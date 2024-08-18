@@ -178,7 +178,6 @@ app.delete("/group/:roomName/:userName", (req, res) => {
 app.get("/chat-history/:roomName", (req, res) => {
     const roomName = req.params.roomName;
     const chatHistory = userRooms.find((i) => i.roomName === roomName).messages;
-    console.log(`get chat history ${roomName}`, chatHistory);
     res.send(JSON.stringify(chatHistory));
 });
 
@@ -186,7 +185,6 @@ app.post("/init-room/:userName/:senderName", (req, res) => {
     const userName = req.params.userName;
     const senderName = req.params.senderName;
     const roomName = joinRoom(userName, senderName);
-    console.log(`${userName} chat with ${senderName} in ${roomName} `);
     res.send(JSON.stringify(roomName));
 });
 

@@ -2,44 +2,64 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { useAuthContext } from "../components/Auth/AuthProvider";
 import chatService from "../service/chat.service";
-import { useParams } from "react-router";
+import { toast } from "react-toastify";
 
-function useRealtimeChat() {
+function useRealtimeChat(
+    defaultRoomName?: string | undefined,
+    senderName?: string | undefined,
+    alertUserConnect: boolean = false
+) {
     const socketRef = useRef<Socket>();
     const { user } = useAuthContext();
-    const [roomName, setRoomName] = useState();
-    const [chatHistory, setChatHistory] = useState();
-    const { id: senderName } = useParams();
+    const [roomName, setRoomName] = useState(defaultRoomName);
+    const [chatHistory, setChatHistory] = useState([]);
 
-    const initChat = useCallback(
-        async (userName: string, senderName: string) => {
-            const resRoom = await chatService.initRoom(userName, senderName);
-            const roomName = resRoom.data as string;
-            setRoomName(roomName);
-            const resChatHistory = await chatService.chatHistory(roomName);
-            setChatHistory(resChatHistory.data);
+    const onAlertUserConnect = useCallback(
+        (param: any) => {
+            if (!alertUserConnect) return;
+            toast(param.message);
         },
-        []
+        [alertUserConnect]
     );
+
+    const initChatHistory = useCallback(async (roomName: string) => {
+        const resChatHistory = await chatService.chatHistory(roomName);
+        setRoomName(roomName);
+        setChatHistory(resChatHistory.data as never[]);
+    }, []);
+
+    const initChat = useCallback(async () => {
+        if (!user?.userName) return;
+        if (!roomName && senderName) {
+            const resRoom = await chatService.initRoom(
+                user.userName,
+                senderName
+            );
+            setRoomName(resRoom.data as string);
+            await initChatHistory(resRoom.data as string);
+        } else if (roomName) {
+            await initChatHistory(roomName);
+        }
+    }, [initChatHistory, roomName, senderName, user?.userName]);
 
     const onChat = useCallback((message: any) => {
         setChatHistory((prevs) => [...prevs, message]);
     }, []);
 
     useEffect(() => {
-        if (!user?.userName || !senderName) return;
-        initChat(user.userName, senderName);
-    }, [initChat, senderName, user?.userName]);
+        initChat();
+    }, [initChat]);
 
     useEffect(() => {
-        // if(!user) return
+        if (!user) return;
         if (!roomName) return;
+
         socketRef.current = io("http://localhost:5000");
         socketRef.current.emit("join-room", {
             userName: user?.name ?? "",
             room: roomName,
         });
-        socketRef.current.on("user-connected", () => {});
+        socketRef.current.on("user-connected", onAlertUserConnect);
         socketRef.current.on("chat-message", onChat);
 
         return () => {
@@ -48,10 +68,19 @@ function useRealtimeChat() {
             socketRef.current.emit("disconnected", {
                 userName: user?.name ?? "",
             });
-            socketRef.current.off("join-room");
             socketRef.current.off("chat-message");
+            socketRef.current.off("user-connected");
         };
-    }, [onChat, roomName, user?.name, user?.userName]);
+    }, [
+        initChat,
+        onAlertUserConnect,
+        onChat,
+        roomName,
+        senderName,
+        user,
+        user?.name,
+        user?.userName,
+    ]);
 
     return {
         socketRef,

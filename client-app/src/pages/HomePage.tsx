@@ -33,9 +33,8 @@ const mockFriends: IFriend[] = [
     },
 ];
 
-function FriendsPage() {
+function HomePage() {
     const { user, onlineUsers } = useAuthContext();
-    console.log("onlineUsers", onlineUsers);
     return (
         <Grid container direction="column">
             <Grid item container alignItems="center" margin={2}>
@@ -65,4 +64,4 @@ function FriendsPage() {
         </Grid>
     );
 }
-export default FriendsPage;
+export default HomePage;

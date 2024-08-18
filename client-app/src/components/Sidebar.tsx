@@ -23,7 +23,7 @@ const menu: IRoute[] = [
     },
 ];
 
-function NavBar() {
+function Sidebar() {
     const { pathname } = useLocation();
     const navigate = useNavigate();
 
@@ -45,4 +45,4 @@ function NavBar() {
         </Box>
     );
 }
-export default NavBar;
+export default Sidebar;

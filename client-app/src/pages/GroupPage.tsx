@@ -13,12 +13,14 @@ import { useCallback, useState } from "react";
 import groupService from "../service/group.service";
 import { useAuthContext } from "../components/Auth/AuthProvider";
 import useRealtimeGroup from "../websocket/useRealtimeGroup";
+import { useNavigate } from "react-router";
 
 function GroupPage() {
     const [openNewGroupPopup, setOpenNewGroupPopup] = useState(false);
     const [roomName, setRoomName] = useState("");
     const { user } = useAuthContext();
     const { socketRef, groups, onDeleteGroups } = useRealtimeGroup();
+    const navigate = useNavigate();
 
     const emitGetUpdatedGroup = useCallback(() => {
         if (!socketRef?.current) return;
@@ -57,6 +59,13 @@ function GroupPage() {
         setOpenNewGroupPopup(false);
         setRoomName("");
     }, [createGroup, roomName]);
+
+    const joinRoom = useCallback(
+        (roomName: string) => {
+            navigate(`/groups/${roomName}`);
+        },
+        [navigate]
+    );
 
     return (
         <Box display="flex" flexDirection="column" alignItems="center">
@@ -104,7 +113,13 @@ function GroupPage() {
                                                 Del
                                             </Button>
                                         )}
-                                        <Button>Join room</Button>
+                                        <Button
+                                            onClick={() => {
+                                                joinRoom(i.roomName);
+                                            }}
+                                        >
+                                            Join room
+                                        </Button>
                                     </Box>
                                 </CardActions>
                             </Card>

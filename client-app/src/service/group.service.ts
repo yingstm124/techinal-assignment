@@ -1,6 +1,9 @@
 import httpRequest from "../httpRequest";
 
 const groupService = {
-  getRooms: () => httpRequest.get("/rooms"),
+    createGroup: (roomName: string, userName: string) =>
+        httpRequest.post(`/group/${roomName}/${userName}`),
+    deleteGroup: (roomName: string, userName: string) =>
+        httpRequest.delete(`/group/${roomName}/${userName}`),
 };
 export default groupService;

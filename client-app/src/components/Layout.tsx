@@ -1,45 +1,36 @@
-import {
-  Avatar,
-  Box,
-  Container,
-  Divider,
-  Drawer,
-  Toolbar,
-  Typography,
-} from "@mui/material";
-import { Outlet } from "react-router";
-import SideNavList from "./SideNavList";
+import { Box, Button, Grid } from "@mui/material";
+import { Outlet, useNavigate } from "react-router";
+import NavBar from "./NavBar";
 import Profile from "./Profile";
-
-const SIDE_BAR_SIZE = 200;
+import LogoutIcon from "@mui/icons-material/Logout";
+import { useAuthContext } from "./Auth/AuthProvider";
 
 function Layout() {
-  return (
-    <>
-      <Box display="flex">
-        <Box sx={{ width: { sm: SIDE_BAR_SIZE } }}>
-          <Drawer
-            open
-            variant="permanent"
-            sx={{
-              "& .MuiDrawer-paper": {
-                boxSizing: "border-box",
-                width: SIDE_BAR_SIZE,
-              },
-            }}
-          >
-            <Toolbar>
-              <Profile />
-            </Toolbar>
-            <Divider />
-            <SideNavList />
-          </Drawer>
-        </Box>
-        <Container>
-          <Outlet />
-        </Container>
-      </Box>
-    </>
-  );
+    const { logout } = useAuthContext();
+    const navigate = useNavigate();
+    return (
+        <Grid>
+            <Box width="100%">
+                <Box display="flex" justifyContent="flex-end" padding={1}>
+                    <Profile />
+                    <Button
+                        startIcon={<LogoutIcon />}
+                        onClick={() => {
+                            navigate("/");
+                            logout();
+                        }}
+                    >
+                        Logout
+                    </Button>
+                </Box>
+                <Box>
+                    <NavBar />
+                </Box>
+            </Box>
+            <Box>
+                <Outlet />
+            </Box>
+        </Grid>
+    );
 }
 export default Layout;

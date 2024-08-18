@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { useAuthContext } from "../components/Auth/AuthProvider";
 import chatService from "../service/chat.service";
-import { toast } from "react-toastify";
 
 function useRealtimeChat(
     defaultRoomName?: string | undefined,
@@ -13,11 +12,20 @@ function useRealtimeChat(
     const { user } = useAuthContext();
     const [roomName, setRoomName] = useState(defaultRoomName);
     const [chatHistory, setChatHistory] = useState([]);
+    const [signal, setSignal] = useState("");
 
     const onAlertUserConnect = useCallback(
         (param: any) => {
             if (!alertUserConnect) return;
-            toast(param.message);
+            setSignal(param.message);
+        },
+        [alertUserConnect]
+    );
+
+    const onAlertUserDisconnect = useCallback(
+        (param: any) => {
+            if (!alertUserConnect) return;
+            setSignal(param.message);
         },
         [alertUserConnect]
     );
@@ -47,6 +55,13 @@ function useRealtimeChat(
     }, []);
 
     useEffect(() => {
+        const interval = setInterval(() => {
+            setSignal("");
+        }, 6000);
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
         initChat();
     }, [initChat]);
 
@@ -60,16 +75,19 @@ function useRealtimeChat(
             room: roomName,
         });
         socketRef.current.on("user-connected", onAlertUserConnect);
+        socketRef.current.on("user-disconnected", onAlertUserDisconnect);
         socketRef.current.on("chat-message", onChat);
 
         return () => {
             if (!socketRef?.current) return;
 
-            socketRef.current.emit("disconnected", {
-                userName: user?.name ?? "",
+            socketRef.current.emit("disconnect-room", {
+                userName: user.userName,
+                roomName: roomName,
             });
             socketRef.current.off("chat-message");
             socketRef.current.off("user-connected");
+            socketRef.current.off("user-disconnected");
         };
     }, [
         initChat,
@@ -80,11 +98,13 @@ function useRealtimeChat(
         user,
         user?.name,
         user?.userName,
+        onAlertUserDisconnect,
     ]);
 
     return {
         socketRef,
         chatHistory,
+        signal,
     };
 }
 export default useRealtimeChat;

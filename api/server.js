@@ -75,7 +75,7 @@ const addMessage = (roomName, userName, content) => {
     const newMessage = {
         content: content,
         type: "text",
-        timeStamp: Date.now,
+        timeStamp: Date.now(),
         userName: userName,
     };
     myRoom.messages = [...myRoom.messages, newMessage];
@@ -119,7 +119,7 @@ io.on("connection", (socket) => {
 
         socket.to(room).emit("user-connected", {
             userName: "System",
-            message: `user ${userName} connected`,
+            message: `${userName} connected`,
         });
 
         socket.on("chat-message", ({ userName, message }) => {
@@ -127,13 +127,13 @@ io.on("connection", (socket) => {
             const newMessage = addMessage(room, userName, message);
             io.to(room).emit("chat-message", newMessage);
         });
+    });
 
-        socket.on("disconnect", ({ userName }) => {
-            console.log(`${userName} disconnected`);
-            io.to(room).emit("user-disconnect", {
-                userName: "System",
-                message: `user ${userName} disconnected`,
-            });
+    socket.on("disconnect-room", ({ userName, roomName }) => {
+        console.log(`${userName} disconnected`);
+        io.to(roomName).emit("user-disconnected", {
+            userName: "System",
+            message: `${userName} disconnected`,
         });
     });
 });

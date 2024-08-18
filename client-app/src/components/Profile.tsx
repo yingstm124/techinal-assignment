@@ -2,7 +2,6 @@ import {
     Avatar,
     Box,
     Button,
-    Grid,
     IconButton,
     Menu,
     MenuItem,
@@ -23,7 +22,13 @@ function Profile() {
         logout();
     };
     return (
-        <Box>
+        <Box
+            display="flex"
+            width="100%"
+            justifyContent="center"
+            alignItems="center"
+            paddingY={1}
+        >
             <IconButton
                 aria-controls={open ? "profile-menu" : undefined}
                 aria-haspopup="true"
@@ -34,6 +39,9 @@ function Profile() {
                     setAnchorEl(e.currentTarget);
                 }}
             >
+                <Typography variant="subtitle1" paddingX={1}>
+                    {user?.name.toUpperCase()}
+                </Typography>
                 <Avatar />
             </IconButton>
 
@@ -46,19 +54,6 @@ function Profile() {
                     transformOrigin={{ horizontal: "right", vertical: "top" }}
                     anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
                 >
-                    <MenuItem>
-                        <Grid
-                            container
-                            direction="column"
-                            justifyContent="center"
-                            alignItems="center"
-                        >
-                            <Avatar />
-                            <Typography variant="subtitle1" paddingTop={1}>
-                                {user?.name.toUpperCase()}
-                            </Typography>
-                        </Grid>
-                    </MenuItem>
                     <MenuItem>
                         <Button
                             startIcon={<LogoutIcon />}

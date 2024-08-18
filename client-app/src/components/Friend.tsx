@@ -1,6 +1,7 @@
 import {
     Avatar,
     Badge,
+    Box,
     Divider,
     ListItemAvatar,
     ListItemButton,
@@ -29,15 +30,15 @@ function Friend({ name, userId, isOnline }: IFriend) {
         navigate(`/chat/${userId}`);
     }, [navigate, userId]);
     return (
-        <>
+        <Box marginY={1}>
+            <Divider sx={{ bgcolor: "text.primary", opacity: 0.1 }} />
             <ListItemButton onClick={onChat}>
                 <ListItemAvatar>
                     {isOnline ? <OnlineAvatar /> : <Avatar />}
                 </ListItemAvatar>
                 <ListItemText primary={name} />
             </ListItemButton>
-            <Divider />
-        </>
+        </Box>
     );
 }
 export default Friend;

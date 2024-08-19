@@ -7,12 +7,6 @@ function useUserOnline() {
   const socketRef = useRef<Socket>();
   const { user, updateOnlineUsers } = useAuthContext();
 
-  const offline = useCallback(() => {
-    if (!socketRef.current) return;
-    socketRef.current.emit("user-offline");
-    socketRef.current.off("online-users");
-  }, []);
-
   const onOnlineUsers = useCallback(
     (param: IOnlineUsers) => {
       updateOnlineUsers(param);
@@ -26,13 +20,11 @@ function useUserOnline() {
     socketRef.current.emit("user-online", user.userName);
     socketRef.current.on("online-users", onOnlineUsers);
 
-    window.addEventListener("beforeunload", offline);
-
     return () => {
-      window.removeEventListener("beforeunload", offline);
-      offline();
+      if (!socketRef.current) return;
+      socketRef.current.off("online-users");
     };
-  }, [offline, onOnlineUsers, user?.userName]);
+  }, [onOnlineUsers, user?.userName]);
   return {};
 }
 export default useUserOnline;

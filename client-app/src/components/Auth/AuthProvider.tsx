@@ -8,10 +8,10 @@ import {
 import { IOnlineUsers } from "../../websocket/param";
 import { userContract } from "../../service/contract/user.contract";
 import authService from "../../service/auth.service";
+import { getName } from "../../helper/getUserNameJWT";
 
 interface IAuthContext {
   user: userContract | undefined;
-  selectUser: (user: userContract) => void;
   logout: () => void;
   onlineUsers: IOnlineUser;
   updateOnlineUsers: (param: IOnlineUsers) => void;
@@ -26,12 +26,8 @@ function AuthProvider({ children }: { children: ReactNode }) {
   const [onlineUsers, setOnlineUsers] = useState<IOnlineUser>({});
 
   const updateOnlineUsers = useCallback((param: IOnlineUsers) => {
+    console.log("online user");
     setOnlineUsers(param);
-  }, []);
-
-  const selectUser = useCallback((user: userContract) => {
-    setUser(user);
-    // window.sessionStorage.setItem("userId", user.userName);
   }, []);
 
   const login = useCallback(async (userName: string, password: string) => {
@@ -39,11 +35,15 @@ function AuthProvider({ children }: { children: ReactNode }) {
     const token = response.data;
     if (!token) return;
     window.sessionStorage.setItem("token", token);
+    const name = getName(token);
+    setUser({
+      userName: userName,
+      name: name,
+    });
   }, []);
 
   const logout = useCallback(() => {
     setUser(undefined);
-    // window.sessionStorage.removeItem("userId");
     window.sessionStorage.removeItem("token");
   }, []);
 
@@ -51,7 +51,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
-        selectUser,
         logout,
         onlineUsers,
         updateOnlineUsers,
@@ -65,9 +64,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
 const AuthContext = createContext<IAuthContext>({
   user: undefined,
-  selectUser: () => {
-    throw new Error("Function not implemented.");
-  },
   logout: function (): void {
     throw new Error("Function not implemented.");
   },

@@ -14,11 +14,13 @@ import { useAuthContext } from "../components/Auth/AuthProvider";
 import { useNavigate } from "react-router";
 import useSelectUser from "../hooks/useSelectUser";
 import { userContract } from "../service/contract/user.contract";
+import { toast } from "react-toastify";
 
 function SelectUserPage() {
-  const { selectUser } = useAuthContext();
+  const { login } = useAuthContext();
   const navigate = useNavigate();
   const [openPasswordPopup, setOpenPasswordPopup] = useState(false);
+  const [password, setPassword] = useState<string>();
   const [user, setUser] = useState<userContract | undefined>();
   const { users } = useSelectUser();
 
@@ -27,11 +29,19 @@ function SelectUserPage() {
     setOpenPasswordPopup(true);
   }, []);
 
+  const onPasswordChange = useCallback((password: string) => {
+    setPassword(password);
+  }, []);
+
   const onSubmit = useCallback(async () => {
-    if (!user) return;
-    selectUser(user);
-    navigate("/");
-  }, [navigate, selectUser, user]);
+    if (!user || !password) return;
+    try {
+      await login(user.userName, password);
+      navigate("/");
+    } catch (err) {
+      toast.error(err.response.data.message);
+    }
+  }, [login, navigate, password, user]);
 
   const onCancel = useCallback(() => {
     setUser(undefined);
@@ -65,7 +75,14 @@ function SelectUserPage() {
         <Dialog open>
           <DialogTitle>Enter password</DialogTitle>
           <DialogContent>
-            <TextField label="password" type="password" />
+            <TextField
+              label="password"
+              type="password"
+              onChange={(e) => {
+                if (!e?.target?.value) return;
+                onPasswordChange(e.target.value);
+              }}
+            />
           </DialogContent>
           <DialogActions>
             <Button onClick={onCancel}>Cancel</Button>

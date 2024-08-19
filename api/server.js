@@ -89,7 +89,6 @@ io.on("connection", (socket) => {
         socket.userName = userName;
         onlineUsers[userName] = socket.id;
         io.emit("online-users", onlineUsers);
-        console.log(`${userName} is online!!`);
     });
 
     socket.on("user-offline", () => {
@@ -100,7 +99,6 @@ io.on("connection", (socket) => {
             delete onlineUsers[existingUser];
             io.emit("online-users", onlineUsers);
         }
-        console.log(`${socket.userName} is offline`);
     });
 
     socket.on("online-groups", () => {
@@ -114,7 +112,6 @@ io.on("connection", (socket) => {
     });
 
     socket.on("join-room", ({ userName, room }) => {
-        console.log(`${userName} join ${room}`);
         socket.join(room);
 
         socket.to(room).emit("user-connected", {
@@ -130,7 +127,6 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect-room", ({ userName, roomName }) => {
-        console.log(`${userName} disconnected`);
         io.to(roomName).emit("user-disconnected", {
             userName: "System",
             message: `${userName} disconnected`,
@@ -141,6 +137,12 @@ io.on("connection", (socket) => {
 app.get("/", (_, res) => {
     res.send("Hi server");
 });
+
+// User service
+app.get("/users",(_, res) => {
+    const users = mockUsers.map(i => ({ userName: i.userName, name: i.name }))
+    res.send(users)
+})
 
 // Group service
 app.post("/group/:roomName/:userName", (req, res) => {
@@ -154,23 +156,19 @@ app.post("/group/:roomName/:userName", (req, res) => {
                 createdBy: newUserRoom.createdBy,
             })
         );
-    else return res.status(400);
+    else return res.status(400).json({ message: 'No room' });
 });
 app.delete("/group/:roomName/:userName", (req, res) => {
     const roomName = req.params.roomName;
     const userName = req.params.userName;
 
     const deleteRoom = userRooms.find((i) => i.roomName === roomName);
-    console.log("==> deleteRoom", deleteRoom);
-    if (!deleteRoom) return res.status(400);
+    if (!deleteRoom) return res.status(400).json({ message: 'Not found room' });
 
     const isOwnGroup = deleteRoom.createdBy === userName;
-    console.log("==> isOwnGroup", isOwnGroup);
-    if (!isOwnGroup) return res.status(400);
+    if (!isOwnGroup) return res.status(400).json({ message: 'Not allow delete room' });
 
-    console.log("==> before userRooms", userRooms);
     userRooms = userRooms.filter((i) => i.roomName !== roomName);
-    console.log("==> after userRooms", userRooms);
     res.send(userRooms);
 });
 

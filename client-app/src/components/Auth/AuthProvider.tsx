@@ -1,69 +1,69 @@
 import {
-    createContext,
-    ReactNode,
-    useCallback,
-    useContext,
-    useState,
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useState,
 } from "react";
-import { IUser } from "../../pages/SelectUserPage";
 import { IOnlineUsers } from "../../websocket/param";
+import { userContract } from "../../service/contract/user.contract";
 
 interface IAuthContext {
-    user: IUser | undefined;
-    selectUser: (user: IUser) => void;
-    logout: () => void;
-    onlineUsers: IOnlineUser;
-    updateOnlineUsers: (param: IOnlineUsers) => void;
+  user: userContract | undefined;
+  selectUser: (user: userContract) => void;
+  logout: () => void;
+  onlineUsers: IOnlineUser;
+  updateOnlineUsers: (param: IOnlineUsers) => void;
 }
 interface IOnlineUser {
-    [userName: string]: string;
+  [userName: string]: string;
 }
 
 function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<IUser>();
-    const [onlineUsers, setOnlineUsers] = useState<IOnlineUser>({});
+  const [user, setUser] = useState<userContract>();
+  const [onlineUsers, setOnlineUsers] = useState<IOnlineUser>({});
 
-    const updateOnlineUsers = useCallback((param: IOnlineUsers) => {
-        setOnlineUsers(param);
-    }, []);
+  const updateOnlineUsers = useCallback((param: IOnlineUsers) => {
+    setOnlineUsers(param);
+  }, []);
 
-    const selectUser = useCallback((user: IUser) => {
-        setUser(user);
-        window.sessionStorage.setItem("userId", user.userName);
-    }, []);
+  const selectUser = useCallback((user: userContract) => {
+    setUser(user);
+    window.sessionStorage.setItem("userId", user.userName);
+  }, []);
 
-    const logout = useCallback(() => {
-        setUser(undefined);
-        window.sessionStorage.removeItem("userId");
-    }, []);
+  const logout = useCallback(() => {
+    setUser(undefined);
+    window.sessionStorage.removeItem("userId");
+  }, []);
 
-    return (
-        <AuthContext.Provider
-            value={{
-                user,
-                selectUser,
-                logout,
-                onlineUsers,
-                updateOnlineUsers,
-            }}
-        >
-            {children}
-        </AuthContext.Provider>
-    );
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        selectUser,
+        logout,
+        onlineUsers,
+        updateOnlineUsers,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 const AuthContext = createContext<IAuthContext>({
-    user: undefined,
-    selectUser: () => {
-        throw new Error("Function not implemented.");
-    },
-    logout: function (): void {
-        throw new Error("Function not implemented.");
-    },
-    onlineUsers: {},
-    updateOnlineUsers: function (): void {
-        throw new Error("Function not implemented.");
-    },
+  user: undefined,
+  selectUser: () => {
+    throw new Error("Function not implemented.");
+  },
+  logout: function (): void {
+    throw new Error("Function not implemented.");
+  },
+  onlineUsers: {},
+  updateOnlineUsers: function (): void {
+    throw new Error("Function not implemented.");
+  },
 });
 export const useAuthContext = () => useContext(AuthContext);
 export default AuthProvider;

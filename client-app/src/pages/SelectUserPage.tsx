@@ -1,5 +1,15 @@
-import { Avatar, Box, Button, Typography } from "@mui/material";
-import { useCallback } from "react";
+import {
+  Avatar,
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { useCallback, useState } from "react";
 import { useAuthContext } from "../components/Auth/AuthProvider";
 import { useNavigate } from "react-router";
 import useSelectUser from "../hooks/useSelectUser";
@@ -8,14 +18,25 @@ import { userContract } from "../service/contract/user.contract";
 function SelectUserPage() {
   const { selectUser } = useAuthContext();
   const navigate = useNavigate();
+  const [openPasswordPopup, setOpenPasswordPopup] = useState(false);
+  const [user, setUser] = useState<userContract | undefined>();
   const { users } = useSelectUser();
-  const onSelectUser = useCallback(
-    (user: userContract) => {
-      selectUser(user);
-      navigate("/");
-    },
-    [selectUser, navigate]
-  );
+
+  const onSelectUser = useCallback((selectedUser: userContract) => {
+    setUser(selectedUser);
+    setOpenPasswordPopup(true);
+  }, []);
+
+  const onSubmit = useCallback(async () => {
+    if (!user) return;
+    selectUser(user);
+    navigate("/");
+  }, [navigate, selectUser, user]);
+
+  const onCancel = useCallback(() => {
+    setUser(undefined);
+    setOpenPasswordPopup(false);
+  }, []);
 
   return (
     <Box
@@ -40,6 +61,18 @@ function SelectUserPage() {
           </Button>
         ))}
       </Box>
+      {openPasswordPopup && (
+        <Dialog open>
+          <DialogTitle>Enter password</DialogTitle>
+          <DialogContent>
+            <TextField label="password" type="password" />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={onCancel}>Cancel</Button>
+            <Button onClick={onSubmit}>Submit</Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </Box>
   );
 }

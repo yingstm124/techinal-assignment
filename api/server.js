@@ -3,6 +3,8 @@ const { Server } = require("socket.io");
 const http = require("http");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 const app = express();
 const server = http.createServer(app);
@@ -23,6 +25,14 @@ const io = new Server(server, {
         origins: "http://localhost:3000",
     },
 });
+
+const SALT_ROUND = 8
+
+const mockUsers = [
+    { userName: "alice", name: "alice" ,password: bcrypt.hashSync('alice@password', SALT_ROUND) },
+    { userName: "john", name: "john" ,password: bcrypt.hashSync('john@password', SALT_ROUND) },
+    { userName: "hong", name: "hong" ,password: bcrypt.hashSync('hong@password', SALT_ROUND) }
+]
 
 let userRooms = [];
 let onlineUsers = {};
@@ -137,6 +147,20 @@ io.on("connection", (socket) => {
 app.get("/", (_, res) => {
     res.send("Hi server");
 });
+
+//Auth service
+app.post('/login', (req, res) => {
+    const { userName, password } = req.body
+    const user = mockUsers.find(user => user.username === userName);
+  
+  if (!user || !bcrypt.compareSync(password, user.password)) {
+    return res.status(401).json({ message: 'Invalid credentials' });
+  }
+  
+  const token = jwt.sign({ username: user.username }, 'your_secret_key');
+  res.send(token);
+})
+
 
 // User service
 app.get("/users",(_, res) => {

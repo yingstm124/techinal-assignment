@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { io, Manager, Socket } from "socket.io-client";
+import { useCallback, useEffect, useState } from "react";
 import { useAuthContext } from "../components/Auth/AuthProvider";
 import chatService from "../service/chat.service";
+import { socket } from "./socket";
 import { toast } from "react-toastify";
 
 function useRealtimeChat(
@@ -9,13 +9,12 @@ function useRealtimeChat(
   senderName?: string | undefined,
   alertUserConnect: boolean = false
 ) {
-  const socketRef = useRef<Socket>();
   const { user } = useAuthContext();
   const [roomName, setRoomName] = useState(defaultRoomName);
   const [chatHistory, setChatHistory] = useState([]);
   const [signal, setSignal] = useState("");
   const [isConnected, setIsConnected] = useState(false);
-  const [reconnectAttempts, setReconnectAttempts] = useState(0);
+  const [isSentMsg, setIsSentMsg] = useState(false)
 
   const onAlertUserConnect = useCallback(
     (param: any) => {
@@ -58,57 +57,44 @@ function useRealtimeChat(
   }, []);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setSignal("");
-    }, 6000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
     initChat();
   }, [initChat]);
-
-  console.log("isConnected");
 
   useEffect(() => {
     if (!user) return;
     if (!roomName) return;
 
-    const manager = new Manager("http://localhost:5000");
-    socketRef.current = manager.socket("/");
     setIsConnected(true);
-    socketRef.current.emit("join-room", {
+    socket.emit("join-room", {
       userName: user?.name ?? "",
       room: roomName,
     });
-    socketRef.current.on("user-connected", onAlertUserConnect);
-    socketRef.current.on("user-disconnected", onAlertUserDisconnect);
-    socketRef.current.on("chat-message", onChat);
-    socketRef.current.on("disconnect", (reason) => {
+    socket.on("user-connected", onAlertUserConnect);
+    socket.on("user-disconnected", onAlertUserDisconnect);
+    socket.on("chat-message", onChat);
+    socket.on("disconnect", (reason) => {
       setIsConnected(false);
+      toast.info(reason);
       console.log("disconnect", reason);
     });
-    socketRef.current.io.on("reconnect_attempt", () => {
-      setReconnectAttempts((prev) => prev + 1);
+    socket.io.on("reconnect_attempt", () => {
       console.log("Attempting to reconnect...");
     });
 
-    socketRef.current.io.on("reconnect", (attemptNumber) => {
-      setReconnectAttempts(0);
+    socket.io.on("reconnect", (attemptNumber) => {
       setIsConnected(true);
+      toast.info("Reconnected successfully");
       console.log(`Reconnected successfully after ${attemptNumber} attempts`);
     });
 
     return () => {
-      if (!socketRef?.current) return;
-
-      socketRef.current.emit("disconnect-room", {
+      socket.emit("disconnect-room", {
         userName: user.userName,
         roomName: roomName,
       });
-      socketRef.current.off("chat-message");
-      socketRef.current.off("user-connected");
-      socketRef.current.off("user-disconnected");
+      socket.off("chat-message");
+      socket.off("user-connected");
+      socket.off("user-disconnected");
     };
   }, [
     initChat,
@@ -123,10 +109,10 @@ function useRealtimeChat(
   ]);
 
   return {
-    socketRef,
     chatHistory,
     signal,
     isConnected,
+    isSentMsg,
   };
 }
 export default useRealtimeChat;

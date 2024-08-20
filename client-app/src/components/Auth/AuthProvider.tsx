@@ -9,6 +9,7 @@ import { IOnlineUsers } from "../../websocket/param";
 import { userContract } from "../../service/contract/user.contract";
 import authService from "../../service/auth.service";
 import { getName } from "../../helper/getUserNameJWT";
+import { socket } from "../../websocket/socket";
 
 interface IAuthContext {
   user: userContract | undefined;
@@ -40,11 +41,14 @@ function AuthProvider({ children }: { children: ReactNode }) {
       userName: userName,
       name: name,
     });
+    socket.connect()
+    
   }, []);
 
   const logout = useCallback(() => {
     setUser(undefined);
     window.sessionStorage.removeItem("token");
+    socket.disconnect()
   }, []);
 
   return (

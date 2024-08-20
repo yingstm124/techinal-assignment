@@ -10,12 +10,6 @@ function ChatPage() {
     false
   );
 
-  return (
-    <Chat
-      ref={socketRef}
-      chatHistory={chatHistory ?? []}
-      isConnected={isConnected}
-    />
-  );
+  return <Chat ref={socketRef} chatHistory={chatHistory ?? []} />;
 }
 export default ChatPage;

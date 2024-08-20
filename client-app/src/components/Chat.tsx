@@ -19,10 +19,16 @@ const Chat = forwardRef(
     const sendMsg = useCallback(() => {
       if (text === "") return;
       setText("");
-      socketRef.current?.emit("chat-message", {
-        userName: user?.userName ?? "",
-        message: text,
-      });
+      socketRef.current?.emit(
+        "chat-message",
+        {
+          userName: user?.userName ?? "",
+          message: text,
+        },
+        (res) => {
+          console.log(res);
+        }
+      );
       if (!bottomRef?.current) return;
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [socketRef, text, user?.userName]);
@@ -81,6 +87,14 @@ const Chat = forwardRef(
                     })}
                   </Box>
                 }
+                <Box
+                  display="flex"
+                  justifyContent={
+                    i.userName === user?.userName ? "flex-end" : "flex-start"
+                  }
+                >
+                  {i.status}
+                </Box>
               </Box>
             ))}
             <div ref={bottomRef} />

@@ -95,6 +95,7 @@ const addMessage = (roomName, userName, content) => {
     type: "text",
     timeStamp: Date.now(),
     userName: userName,
+    status: "sent"
   };
   myRoom.messages = [...myRoom.messages, newMessage];
   return newMessage;
@@ -138,10 +139,13 @@ io.on("connection", (socket) => {
       message: `${userName} connected`,
     });
 
-    socket.on("chat-message", ({ userName, message }) => {
+    socket.on("chat-message", ({ userName, message }, callback) => {
       console.log(`${userName} message ${message} in ${room}`);
       const newMessage = addMessage(room, userName, message);
       io.to(room).emit("chat-message", newMessage);
+      callback({
+        status: "ok"
+      })
     });
 
     // socket.on("disconnect", (reason) => {

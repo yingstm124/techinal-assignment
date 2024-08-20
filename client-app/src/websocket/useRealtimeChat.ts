@@ -50,8 +50,11 @@ function useRealtimeChat(
     }
   }, [initChatHistory, roomName, senderName, user?.userName]);
 
-  const onChat = useCallback((message: any) => {
-    setChatHistory((prevs) => [...prevs, message]);
+  const onChat = useCallback((payload: any) => {
+    const newMessage = payload;
+    if (payload.status === "ok") newMessage.status = "sent";
+    else newMessage.status = "unsent";
+    setChatHistory((prevs) => [...prevs, payload]);
   }, []);
 
   useEffect(() => {

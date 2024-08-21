@@ -5,6 +5,14 @@ This is the real time chat app project, including client and server, built with 
 1. node.js v16 ++
 2. npm version 10
 
+## Mock 3 users login
+| Name | Password |
+| -------- | ------- |
+| Alice | 123 |
+| John | 123 |
+| Hong | 123 |
+
+
 ## How to run the Server
 
 ```

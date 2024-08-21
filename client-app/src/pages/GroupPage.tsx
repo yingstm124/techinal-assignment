@@ -14,18 +14,18 @@ import groupService from "../service/group.service";
 import { useAuthContext } from "../components/Auth/AuthProvider";
 import useRealtimeGroup from "../websocket/useRealtimeGroup";
 import { useNavigate } from "react-router";
+import { socket } from "../websocket/socket";
 
 function GroupPage() {
     const [openNewGroupPopup, setOpenNewGroupPopup] = useState(false);
     const [roomName, setRoomName] = useState("");
     const { user } = useAuthContext();
-    const { socketRef, groups, onDeleteGroups } = useRealtimeGroup();
+    const { groups, onDeleteGroups } = useRealtimeGroup();
     const navigate = useNavigate();
 
     const emitGetUpdatedGroup = useCallback(() => {
-        if (!socketRef?.current) return;
-        socketRef.current.emit("online-groups");
-    }, [socketRef]);
+        socket.emit("online-groups");
+    }, []);
 
     const isOwnGroup = useCallback(
         (createdBy: string) => createdBy === (user?.userName ?? ""),

@@ -13,9 +13,6 @@ const port = process.env.PORT || 5000;
 app.use(
     cors({
         origins: "http://localhost:3000", // Replace with your React app's URL
-        // methods: ['GET', 'POST'],
-        // allowedHeaders: ['Content-Type'],
-        // credentials: true, // Allow cookies or other credentials to be included in requests
     })
 );
 app.use(bodyParser.json());
@@ -29,7 +26,8 @@ const io = new Server(server, {
 
 const SALT_ROUND = 8;
 
-const mockUsers = [{
+const mockUsers = [
+    {
         userName: "alice",
         name: "alice",
         password: bcrypt.hashSync("123", SALT_ROUND),
@@ -68,7 +66,8 @@ const joinRoom = (userName, senderName) => {
 
     existingUserRoom = userRooms.find(
         (f) =>
-        f.participants.includes(userName) && f.participants.includes(senderName)
+            f.participants.includes(userName) &&
+            f.participants.includes(senderName)
     );
 
     if (existingUserRoom) {
@@ -103,7 +102,7 @@ const addMessage = (roomName, userName, content) => {
 io.on("connection", (socket) => {
     console.log("a user connected");
 
-    socket.on("user-online", async(userName) => {
+    socket.on("user-online", async (userName) => {
         console.log(`${userName} online`);
         socket.userName = userName;
         onlineUsers[userName] = socket.id;
@@ -111,6 +110,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on("online-groups", () => {
+        console.log("online-groups");
         const existingGroups = userRooms
             .filter((i) => i.type === "group")
             .map((i) => ({
@@ -157,8 +157,6 @@ io.on("connection", (socket) => {
         onlineUsers[socket.userName] = socket.userName;
         io.emit("online-users", onlineUsers);
     });
-
-
 });
 
 app.get("/", (_, res) => {
@@ -174,7 +172,8 @@ app.post("/login", (req, res) => {
         return res.status(401).json({ message: "Incorrect password." });
     }
 
-    const token = jwt.sign({ username: user.username, name: user.name },
+    const token = jwt.sign(
+        { username: user.username, name: user.name },
         "your_secret_key"
     );
     res.send(token);
@@ -182,7 +181,10 @@ app.post("/login", (req, res) => {
 
 // User service
 app.get("/users", (_, res) => {
-    const users = mockUsers.map((i) => ({ userName: i.userName, name: i.name }));
+    const users = mockUsers.map((i) => ({
+        userName: i.userName,
+        name: i.name,
+    }));
     res.send(users);
 });
 
@@ -219,7 +221,8 @@ app.delete("/group/:roomName/:userName", (req, res) => {
 app.get("/chat-history/:roomName", (req, res) => {
     const roomName = req.params.roomName;
     const chatHistory = userRooms.find((i) => i.roomName === roomName);
-    if (!chatHistory) return res.status(404).json({ message: "Not found chat history" })
+    if (!chatHistory)
+        return res.status(404).json({ message: "Not found chat history" });
     res.send(JSON.stringify(chatHistory.messages));
 });
 

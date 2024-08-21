@@ -1,6 +1,10 @@
 # Real time chat app
 This is the real time chat app project, including client and server, built with React.js and Node.js
 
+## Additional Note
+1. [Technical note](/technical-note.md) -  Details specific to technical implementation
+2. [Usages note](/usages-note.md) - Guidelines for using the application
+
 ## Prerequisites
 1. node.js v16 ++
 2. npm version 10
